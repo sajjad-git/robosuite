@@ -26,6 +26,8 @@ def create_robot(robot_name, *args, **kwargs):
     Raises:
         Exception: [Invalid robot name]
     """
+    from .manipulators.mycobot_robot import MyCobot
+    REGISTERED_ROBOTS["mycobot"] = MyCobot
     if robot_name not in REGISTERED_ROBOTS:
         raise Exception(
             "Robot {} not found. Make sure it is a registered robot among: {}".format(

@@ -36,7 +36,9 @@ if __name__ == "__main__":
         action="store_true",
     )
     args = parser.parse_args()
-
+    args.folder = "/Users/sajjad/Desktop/robotics/robosuite/robosuite/models/assets/demonstrations/1689356898_672309"
+    
+    args.use_actions = True
     demo_path = args.folder
     hdf5_path = os.path.join(demo_path, "demo.hdf5")
     f = h5py.File(hdf5_path, "r")

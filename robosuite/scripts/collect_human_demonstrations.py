@@ -138,7 +138,7 @@ def gather_demonstrations_as_hdf5(directory, out_dir, env_info):
 
         # Add only the successful demonstration to dataset
         if success:
-            print("Demonstration is successful and has been saved")
+            print(f"Demonstration {num_eps + 1} was successful and has been saved in {hdf5_path}")
             # Delete the last state. This is because when the DataCollector wrapper
             # recorded the states and actions, the states were recorded AFTER playing that action,
             # so we end up with an extra state at the end.
@@ -158,7 +158,7 @@ def gather_demonstrations_as_hdf5(directory, out_dir, env_info):
             ep_data_grp.create_dataset("states", data=np.array(states))
             ep_data_grp.create_dataset("actions", data=np.array(actions))
         else:
-            print("Demonstration is unsuccessful and has NOT been saved")
+            print(f"Demonstration {num_eps + 1} was unsuccessful and has NOT been saved")
 
     # write dataset attributes (metadata)
     now = datetime.datetime.now()
@@ -179,19 +179,21 @@ if __name__ == "__main__":
         type=str,
         default=os.path.join(suite.models.assets_root, "demonstrations"),
     )
-    parser.add_argument("--environment", type=str, default="Lift")
+    parser.add_argument("--environment", type=str, default="Stack")
     parser.add_argument("--robots", nargs="+", type=str, default="Panda", help="Which robot(s) to use in the env")
     parser.add_argument(
         "--config", type=str, default="single-arm-opposed", help="Specified environment configuration if necessary"
     )
     parser.add_argument("--arm", type=str, default="right", help="Which arm to control (eg bimanual) 'right' or 'left'")
-    parser.add_argument("--camera", type=str, default="agentview", help="Which camera to use for collecting demos")
+    #parser.add_argument("--camera", type=str, default="agentview", help="Which camera to use for collecting demos")
+    parser.add_argument("--camera", type=str, default="frontview", help="Which camera to use for collecting demos")
     parser.add_argument(
         "--controller", type=str, default="OSC_POSE", help="Choice of controller. Can be 'IK_POSE' or 'OSC_POSE'"
     )
     parser.add_argument("--device", type=str, default="keyboard")
-    parser.add_argument("--pos-sensitivity", type=float, default=1.0, help="How much to scale position user inputs")
-    parser.add_argument("--rot-sensitivity", type=float, default=1.0, help="How much to scale rotation user inputs")
+    #parser.add_argument("--device", type=str, default="spacemouse")
+    parser.add_argument("--pos-sensitivity", type=float, default=1.0, help="How much to scale position user inputs") # default = 1
+    parser.add_argument("--rot-sensitivity", type=float, default=1.0, help="How much to scale rotation user inputs") # default = 1
     args = parser.parse_args()
 
     # Get controller config
@@ -203,10 +205,21 @@ if __name__ == "__main__":
         "robots": args.robots,
         "controller_configs": controller_config,
     }
+    # /tmp/1689355792_012251/ep_1689355835_26461/model.xml
+    # /Users/sajjad/Desktop/robotics/robosuite/robosuite/scripts/make_reset_video.py
 
     # Check if we're using a multi-armed environment and use env_configuration argument if so
     if "TwoArm" in args.environment:
         config["env_configuration"] = args.config
+    
+    # Add placement initializer
+    from robosuite.utils.placement_samplers import UniformRandomSampler
+    xy_offset = 0.3
+    z_offset = 0.8
+    obj_pos_sampler = UniformRandomSampler("uniform_sampler", 
+                                        x_range=(-xy_offset,xy_offset),
+                                        y_range=(-xy_offset,xy_offset),
+                                        z_offset=z_offset)
 
     # Create environment
     env = suite.make(
@@ -218,6 +231,7 @@ if __name__ == "__main__":
         use_camera_obs=False,
         reward_shaping=True,
         control_freq=20,
+        placement_initializer=obj_pos_sampler,
     )
 
     # Wrap this with visualization wrapper

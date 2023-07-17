@@ -19,7 +19,7 @@ def test_all_environments():
     for env_name in envs:
         # Create config dict
         env_config = {"env_name": env_name}
-        for robot_name in ("Panda", "Sawyer", "Baxter"):
+        for robot_name in ("Panda", "Sawyer", "Baxter", "mycobot"):
             # create an environment for learning on pixels
             config = None
             if "TwoArm" in env_name:
