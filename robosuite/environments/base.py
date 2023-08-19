@@ -447,7 +447,7 @@ class MujocoEnv(metaclass=EnvMeta):
         """
         Renders to an on-screen window.
         """
-        self.viewer.render()
+        return self.viewer.render()
 
     def get_pixel_obs(self):
         """
